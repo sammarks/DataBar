@@ -57,7 +57,7 @@
 		14B0CA27297DF00F004A12BE /* PropertySelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertySelectView.swift; sourceTree = "<group>"; };
 		14B0CA2F297DF7F4004A12BE /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		14E802E129872233007F9FD7 /* View+windowLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+windowLevel.swift"; sourceTree = "<group>"; };
-		14E802E329872D4A007F9FD7 /* DataBarConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DataBarConfig.xcconfig; sourceTree = "<group>"; };
+		14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DataBarConfig.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,7 +102,7 @@
 				14B0CA01297D9ADF004A12BE /* Assets.xcassets */,
 				14B0CA06297D9ADF004A12BE /* DataBar.entitlements */,
 				14B0CA03297D9ADF004A12BE /* Preview Content */,
-				14E802E329872D4A007F9FD7 /* DataBarConfig.xcconfig */,
+				14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */,
 			);
 			path = DataBar;
 			sourceTree = "<group>";
@@ -386,7 +386,7 @@
 		};
 		14B0CA0A297D9ADF004A12BE /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 14E802E329872D4A007F9FD7 /* DataBarConfig.xcconfig */;
+			baseConfigurationReference = 14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -416,7 +416,7 @@
 		};
 		14B0CA0B297D9ADF004A12BE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 14E802E329872D4A007F9FD7 /* DataBarConfig.xcconfig */;
+			baseConfigurationReference = 14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
