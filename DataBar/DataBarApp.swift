@@ -6,12 +6,48 @@
 //
 
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct DataBarApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
+  @StateObject var authViewModel = AuthenticationViewModel()
+  
+  var body: some Scene {
+    MenuBarExtra(content: {
+      Button("Settings") {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate(ignoringOtherApps: true)
+      }.keyboardShortcut(",")
+      Divider()
+      Button("About") {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.orderFrontStandardAboutPanel(nil)
+      }
+      Button("Quit") {
+        NSApplication.shared.terminate(nil)
+      }.keyboardShortcut("q")
+    }, label: {
+      MenuBarView()
+        .environmentObject(authViewModel)
+        .onAppear {
+          GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
+            if let user = user {
+              self.authViewModel.state = .signedIn(user)
+            } else if let error = error {
+              self.authViewModel.state = .signedOut
+              print("There was an error restoring the previous sign-in: \(error)")
+            } else {
+              self.authViewModel.state = .signedOut
+            }
+          }
+        }
+    })
+    Settings {
+      SettingsView()
+        .environmentObject(authViewModel)
+        .onOpenURL { url in
+          GIDSignIn.sharedInstance.handle(url)
         }
     }
+  }
 }
