@@ -29,7 +29,7 @@ final class MenuBarViewModel: ObservableObject {
             print("Error retrieving current value: \(error)")
           }
         } receiveValue: { reportResponse in
-          self.currentValue = reportResponse.rows[0].metricValues[0].value
+          self.currentValue = reportResponse.rows?[0].metricValues[0].value ?? "0"
           self.hasError = false
         }
       }

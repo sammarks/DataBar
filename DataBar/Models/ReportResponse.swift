@@ -21,9 +21,9 @@ struct ReportRequest: Encodable {
 
 struct ReportResponse: Decodable {
   let dimensionHeaders: [DimensionHeader]?
-  let metricHeaders: [MetricHeader]
-  let rows: [Row]
-  let rowCount: Int
+  let metricHeaders: [MetricHeader]?
+  let rows: [Row]?
+  let rowCount: Int?
 }
 
 struct DimensionHeader: Decodable {

@@ -23,6 +23,13 @@ struct DataBarApp: App {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(nil)
       }
+      Button("Send Feedback...") {
+        NSWorkspace.shared.open(URL(string: "https://github.com/sammarks/DataBar/issues")!)
+      }
+      Button("Rate on the App Store") {
+        NSWorkspace.shared.open(URL(string: "macappstore://apps.apple.com/app/idXXXX?action=write-review")!)
+      }
+      Divider()
       Button("Quit") {
         NSApplication.shared.terminate(nil)
       }.keyboardShortcut("q")
