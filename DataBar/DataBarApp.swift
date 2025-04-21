@@ -14,10 +14,15 @@ struct DataBarApp: App {
   
   var body: some Scene {
     MenuBarExtra(content: {
-      Button("Settings") {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
-      }.keyboardShortcut(",")
+      if #available(macOS 14.0, *) {
+        SettingsLink()
+          .keyboardShortcut(",")
+      } else {
+        Button("Settings") {
+          NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+          NSApp.activate(ignoringOtherApps: true)
+        }.keyboardShortcut(",")
+      }
       Divider()
       Button("About") {
         NSApp.activate(ignoringOtherApps: true)
