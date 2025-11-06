@@ -13,8 +13,27 @@ final class MenuBarViewModel: ObservableObject {
   @Published private(set) var currentValue: String?
   @Published private(set) var hasError: Bool?
   private var cancellable: AnyCancellable?
-  private let reportLoader = ReportLoader()
+  private var networkCancellable: AnyCancellable?
+  private let reportLoader: ReportLoader
+  private let networkMonitor: NetworkMonitoring
   @AppStorage("selectedPropertyId") private var selectedPropertyId: String = ""
+  
+  init(
+    reportLoader: ReportLoader = ReportLoader(),
+    networkMonitor: NetworkMonitoring = NetworkMonitor.shared
+  ) {
+    self.reportLoader = reportLoader
+    self.networkMonitor = networkMonitor
+    
+    networkCancellable = networkMonitor.statusPublisher
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] isConnected in
+        guard let self = self else { return }
+        if isConnected && self.hasError == true {
+          self.refreshValue()
+        }
+      }
+  }
   
   func refreshValue() {
     if selectedPropertyId != "" {
