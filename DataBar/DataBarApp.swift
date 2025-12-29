@@ -11,6 +11,7 @@ import GoogleSignIn
 @main
 struct DataBarApp: App {
   @StateObject var authViewModel = AuthenticationViewModel()
+  @StateObject var updaterViewModel = UpdaterViewModel()
   
   var body: some Scene {
     MenuBarExtra(content: {
@@ -23,6 +24,11 @@ struct DataBarApp: App {
           NSApp.activate(ignoringOtherApps: true)
         }.keyboardShortcut(",")
       }
+      Divider()
+      Button("Check for Updates...") {
+        updaterViewModel.checkForUpdates()
+      }
+      .disabled(!updaterViewModel.canCheckForUpdates)
       Divider()
       Button("About") {
         NSApp.activate(ignoringOtherApps: true)

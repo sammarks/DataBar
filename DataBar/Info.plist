@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk</string>
-			</array>
-		</dict>
-	</array>
-	<key>GIDClientID</key>
-	<string>458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk.apps.googleusercontent.com</string>
-</dict>
+	<dict>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk</string>
+				</array>
+			</dict>
+		</array>
+		<key>GIDClientID</key>
+		<string>458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk.apps.googleusercontent.com</string>
+		<key>SUFeedURL</key>
+		<string>https://raw.githubusercontent.com/sammarks/DataBar/main/appcast.xml</string>
+		<key>SUPublicEDKey</key>
+		<string>hmXQj098qaMCmcjEPbBwd+VUQhdA4iB4Lzizg9IQZac=</string>
+	</dict>
 </plist>
