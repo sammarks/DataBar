@@ -109,11 +109,34 @@ jobs:
           mkdir -p ~/.private_keys
           echo -n "$APPLE_API_KEY_BASE64" | base64 --decode > ~/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
 
-          xcrun notarytool submit $PRODUCT_NAME.zip \
+          # Submit and capture the submission ID
+          SUBMIT_OUTPUT=$(xcrun notarytool submit $PRODUCT_NAME.zip \
             --key ~/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
             --key-id "$APPLE_API_KEY_ID" \
             --issuer "$APPLE_API_ISSUER_ID" \
-            --wait
+            --wait 2>&1)
+          
+          echo "$SUBMIT_OUTPUT"
+          
+          # Extract submission ID and check status
+          SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep -o '[0-9a-f\-]\{36\}' | head -1)
+          
+          # Always fetch the log for debugging
+          if [ -n "$SUBMISSION_ID" ]; then
+            echo "Fetching notarization log for submission $SUBMISSION_ID..."
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --key ~/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
+              --key-id "$APPLE_API_KEY_ID" \
+              --issuer "$APPLE_API_ISSUER_ID" \
+              notarization-log.json || true
+            cat notarization-log.json || true
+          fi
+          
+          # Check if notarization was successful
+          if echo "$SUBMIT_OUTPUT" | grep -q "status: Invalid"; then
+            echo "Notarization failed! See log above for details."
+            exit 1
+          fi
 
           xcrun stapler staple $PRODUCT_NAME.app
 
