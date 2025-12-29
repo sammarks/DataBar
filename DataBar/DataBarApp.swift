@@ -11,6 +11,7 @@ import GoogleSignIn
 @main
 struct DataBarApp: App {
   @StateObject var authViewModel = AuthenticationViewModel()
+  @StateObject var updaterViewModel = UpdaterViewModel()
   
   var body: some Scene {
     MenuBarExtra(content: {
@@ -23,6 +24,11 @@ struct DataBarApp: App {
           NSApp.activate(ignoringOtherApps: true)
         }.keyboardShortcut(",")
       }
+      Divider()
+      Button("Check for Updates...") {
+        updaterViewModel.checkForUpdates()
+      }
+      .disabled(!updaterViewModel.canCheckForUpdates)
       Divider()
       Button("About") {
         NSApp.activate(ignoringOtherApps: true)
@@ -47,9 +53,15 @@ struct DataBarApp: App {
               self.authViewModel.state = .signedIn(user)
             } else if let error = error {
               self.authViewModel.state = .signedOut
+              TelemetryLogger.shared.logSessionRestorationFailure(error: error)
               print("There was an error restoring the previous sign-in: \(error)")
             } else {
               self.authViewModel.state = .signedOut
+              TelemetryLogger.shared.logSignedOutState(
+                source: "DataBarApp.restorePreviousSignIn",
+                reason: TelemetryLogger.SignOutReason.sessionRestoreFailed,
+                additionalContext: ["no_user_and_no_error": true]
+              )
             }
           }
         }

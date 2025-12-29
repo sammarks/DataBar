@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import Network
 import SwiftUI
 
 final class MenuBarViewModel: ObservableObject {
@@ -15,6 +16,36 @@ final class MenuBarViewModel: ObservableObject {
   private var cancellable: AnyCancellable?
   private let reportLoader = ReportLoader()
   @AppStorage("selectedPropertyId") private var selectedPropertyId: String = ""
+  
+  private let networkMonitor = NWPathMonitor()
+  private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
+  private var wasUnavailable = false
+  
+  init() {
+    startNetworkMonitoring()
+  }
+  
+  deinit {
+    networkMonitor.cancel()
+  }
+  
+  private func startNetworkMonitoring() {
+    networkMonitor.pathUpdateHandler = { [weak self] path in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        
+        let networkBecameAvailable = path.status == .satisfied && (self.wasUnavailable || self.hasError == true)
+        
+        if networkBecameAvailable {
+          self.wasUnavailable = false
+          self.refreshValue()
+        } else if path.status != .satisfied {
+          self.wasUnavailable = true
+        }
+      }
+    }
+    networkMonitor.start(queue: monitorQueue)
+  }
   
   func refreshValue() {
     if selectedPropertyId != "" {
@@ -26,6 +57,11 @@ final class MenuBarViewModel: ObservableObject {
           case .failure(let error):
             self.currentValue = nil
             self.hasError = true
+            TelemetryLogger.shared.logErrorState(
+              source: "MenuBarViewModel.refreshValue",
+              error: error,
+              propertyId: self.selectedPropertyId
+            )
             print("Error retrieving current value: \(error)")
           }
         } receiveValue: { reportResponse in
