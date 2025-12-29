@@ -57,13 +57,17 @@ jobs:
           cp -R "build/$PRODUCT_NAME.xcarchive/Products/Applications/$PRODUCT_NAME.app" build/unsigned/
 
       - name: Write signing credentials
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
         run: |
           # Write p12 certificate
-          echo '${{ secrets.APPLE_CERTIFICATE_BASE64 }}' | base64 --decode > certificate.p12
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
           
           # Write App Store Connect API key
           mkdir -p private_keys
-          echo '${{ secrets.APPLE_API_KEY_BASE64 }}' | base64 --decode > private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          echo -n "$API_KEY_BASE64" | base64 --decode > private_keys/AuthKey_${API_KEY_ID}.p8
 
       - name: Sign, notarize, and staple app
         uses: indygreg/apple-code-sign-action@v1
