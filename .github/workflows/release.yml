@@ -31,6 +31,28 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version $VERSION"
 
+      - name: Install Apple certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychain -d user | tr -d '"')
+          security default-keychain -s $KEYCHAIN_PATH
+
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -scheme $SCHEME
 
@@ -40,7 +62,7 @@ jobs:
           sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = ${{ steps.version.outputs.version }};/g" project.pbxproj
           sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = ${{ github.run_number }};/g" project.pbxproj
 
-      - name: Build Release
+      - name: Build and Archive
         run: |
           xcodebuild archive \
             -scheme $SCHEME \
@@ -53,53 +75,93 @@ jobs:
 
       - name: Extract app from archive
         run: |
-          mkdir -p build/unsigned
-          cp -R "build/$PRODUCT_NAME.xcarchive/Products/Applications/$PRODUCT_NAME.app" build/unsigned/
+          mkdir -p build/export
+          cp -R "build/$PRODUCT_NAME.xcarchive/Products/Applications/$PRODUCT_NAME.app" build/export/
 
-      - name: Write signing credentials
+      - name: Codesign app
         env:
-          CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
-          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Write p12 certificate
-          echo -n "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          APP_PATH="build/export/$PRODUCT_NAME.app"
+          ENTITLEMENTS="DataBar/DataBar.entitlements"
           
-          # Write App Store Connect API key
-          mkdir -p private_keys
-          echo -n "$API_KEY_BASE64" | base64 --decode > private_keys/AuthKey_${API_KEY_ID}.p8
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | awk '{print $2}')
+          
+          if [ -z "$IDENTITY" ]; then
+            echo "ERROR: No Developer ID Application identity found"
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+            exit 1
+          fi
+          
+          echo "Using identity: $IDENTITY"
+          
+          # Sign Sparkle framework components (innermost to outermost)
+          SPARKLE="$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B"
+          
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/XPCServices/Downloader.xpc/Contents/MacOS/Downloader"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/XPCServices/Downloader.xpc"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/XPCServices/Installer.xpc/Contents/MacOS/Installer"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/XPCServices/Installer.xpc"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/Updater.app/Contents/MacOS/Updater"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/Updater.app"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/Autoupdate"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$SPARKLE/Sparkle"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$APP_PATH/Contents/Frameworks/Sparkle.framework"
+          
+          # Sign main app with entitlements
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP_PATH"
+          
+          # Verify
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
-      - name: Sign, notarize, and staple app
-        uses: indygreg/apple-code-sign-action@v1
-        with:
-          input_path: build/unsigned/${{ env.PRODUCT_NAME }}.app
-          output_path: build/signed/${{ env.PRODUCT_NAME }}.app
-          p12_file: certificate.p12
-          p12_password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          notarize: true
-          staple: true
-          app_store_connect_api_issuer: ${{ secrets.APPLE_API_ISSUER_ID }}
-          app_store_connect_api_key: ${{ secrets.APPLE_API_KEY_ID }}
-
-      - name: Create zip for distribution
+      - name: Notarize app
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
         run: |
-          cd build/signed
+          cd build/export
+          
+          # Create zip with ditto (preserves symlinks)
+          ditto -c -k --keepParent $PRODUCT_NAME.app $PRODUCT_NAME.zip
+          
+          # Write API key
+          mkdir -p ~/.private_keys
+          echo -n "$APPLE_API_KEY_BASE64" | base64 --decode > ~/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+          
+          # Submit for notarization
+          xcrun notarytool submit $PRODUCT_NAME.zip \
+            --key ~/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER_ID" \
+            --wait
+          
+          # Staple the ticket
+          xcrun stapler staple $PRODUCT_NAME.app
+          
+          rm -rf ~/.private_keys
+
+      - name: Create final zip
+        run: |
+          cd build/export
+          rm -f $PRODUCT_NAME.zip
           ditto -c -k --keepParent $PRODUCT_NAME.app $PRODUCT_NAME.zip
 
       - name: Sign update with Sparkle
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          cd build/signed
+          cd build/export
           
-          # Download Sparkle tools
           curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
           mkdir -p sparkle_tools
           tar -xf sparkle.tar.xz -C sparkle_tools
           
-          echo "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_private_key
-          SIGNATURE=$(sparkle_tools/bin/sign_update $PRODUCT_NAME.zip --ed-key-file /tmp/sparkle_private_key)
-          rm /tmp/sparkle_private_key
+          echo "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_key
+          SIGNATURE=$(sparkle_tools/bin/sign_update $PRODUCT_NAME.zip --ed-key-file /tmp/sparkle_key)
+          rm /tmp/sparkle_key
           
           echo "SPARKLE_SIGNATURE<<EOF" >> $GITHUB_ENV
           echo "$SIGNATURE" >> $GITHUB_ENV
@@ -119,7 +181,7 @@ jobs:
             1. Download `DataBar.zip` below
             2. Unzip and move `DataBar.app` to your Applications folder
             3. Open the app (it's signed and notarized)
-          files: build/signed/DataBar.zip
+          files: build/export/DataBar.zip
           draft: false
           prerelease: false
 
@@ -161,3 +223,7 @@ jobs:
           git add appcast.xml
           git commit -m "Update appcast.xml for v${VERSION}"
           git push origin main
+
+      - name: Clean up keychain
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
