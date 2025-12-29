@@ -1,0 +1,80 @@
+name: PR Build
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-release:
+    name: Build Release Artifact
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -scheme DataBar
+
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -scheme DataBar \
+            -configuration Release \
+            -derivedDataPath build \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create App Bundle
+        run: |
+          APP_PATH="build/Build/Products/Release/DataBar.app"
+          if [ -d "$APP_PATH" ]; then
+            # Create a zip of the app
+            cd build/Build/Products/Release
+            zip -r DataBar.zip DataBar.app
+            mv DataBar.zip "$GITHUB_WORKSPACE/"
+          else
+            echo "App not found at $APP_PATH"
+            find build -name "*.app" -type d
+            exit 1
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DataBar-PR-${{ github.event.pull_request.number }}
+          path: DataBar.zip
+          retention-days: 14
+
+      - name: Comment PR with download link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `## 🚀 Build Artifact Ready
+
+            A test build of DataBar is available for this PR.
+
+            **[Download from Actions](${artifactUrl})** → Click on the artifact "DataBar-PR-${{ github.event.pull_request.number }}" to download.
+
+            ### Installation
+            1. Download and unzip \`DataBar.zip\`
+            2. Move \`DataBar.app\` to your Applications folder
+            3. Right-click → Open (required for unsigned apps)
+
+            > ⚠️ This is an unsigned build for testing purposes only.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
