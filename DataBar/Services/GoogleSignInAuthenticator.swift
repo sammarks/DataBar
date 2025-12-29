@@ -32,13 +32,27 @@ final class GoogleSignInAuthenticator: ObservableObject {
   
   func signOut() {
     GIDSignIn.sharedInstance.signOut()
+    TelemetryLogger.shared.logSignedOutState(
+      source: "GoogleSignInAuthenticator.signOut",
+      reason: TelemetryLogger.SignOutReason.userInitiated
+    )
     authViewModel.state = .signedOut
   }
   
   func disconnect() {
     GIDSignIn.sharedInstance.disconnect { error in
       if let error = error {
+        TelemetryLogger.shared.logSignedOutState(
+          source: "GoogleSignInAuthenticator.disconnect",
+          reason: TelemetryLogger.SignOutReason.disconnected,
+          error: error
+        )
         print("Encountered error disconnecting scope: \(error).")
+      } else {
+        TelemetryLogger.shared.logSignedOutState(
+          source: "GoogleSignInAuthenticator.disconnect",
+          reason: TelemetryLogger.SignOutReason.disconnected
+        )
       }
       self.signOut()
     }
@@ -55,6 +69,11 @@ final class GoogleSignInAuthenticator: ObservableObject {
     
     currentUser.addScopes([PropertiesLoader.propertiesReadScope], presenting: presentingWindow) { signInResult, error in
       if let error = error {
+        TelemetryLogger.shared.logErrorState(
+          source: "GoogleSignInAuthenticator.addRequiredScopes",
+          error: error,
+          additionalContext: ["scope": PropertiesLoader.propertiesReadScope]
+        )
         print("Found error while adding properties read scope: \(error).")
         return
       }

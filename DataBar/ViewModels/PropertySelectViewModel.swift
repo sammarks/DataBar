@@ -23,6 +23,10 @@ final class PropertySelectViewModel: ObservableObject {
         case .failure(let error):
           self.properties = []
           self.hasError = true
+          TelemetryLogger.shared.logErrorState(
+            source: "PropertySelectViewModel.fetchProperties",
+            error: error
+          )
           print("Error retrieving properties: \(error)")
         }
       } receiveValue: { properties in

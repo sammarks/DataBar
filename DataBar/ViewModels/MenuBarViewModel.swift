@@ -57,6 +57,11 @@ final class MenuBarViewModel: ObservableObject {
           case .failure(let error):
             self.currentValue = nil
             self.hasError = true
+            TelemetryLogger.shared.logErrorState(
+              source: "MenuBarViewModel.refreshValue",
+              error: error,
+              propertyId: self.selectedPropertyId
+            )
             print("Error retrieving current value: \(error)")
           }
         } receiveValue: { reportResponse in

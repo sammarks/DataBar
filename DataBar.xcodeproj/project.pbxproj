@@ -30,6 +30,7 @@
 		14B0CA28297DF00F004A12BE /* PropertySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0CA27297DF00F004A12BE /* PropertySelectView.swift */; };
 		14B0CA30297DF7F4004A12BE /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0CA2F297DF7F4004A12BE /* Account.swift */; };
 		14E802E229872233007F9FD7 /* View+windowLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E802E129872233007F9FD7 /* View+windowLevel.swift */; };
+		14TELM0012025122900001 /* TelemetryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14TELM0012025122900002 /* TelemetryLogger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		14B0CA2F297DF7F4004A12BE /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		14E802E129872233007F9FD7 /* View+windowLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+windowLevel.swift"; sourceTree = "<group>"; };
 		14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DataBarConfig.xcconfig; sourceTree = "<group>"; };
+		14TELM0012025122900002 /* TelemetryLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryLogger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 				14B0CA1A297DB417004A12BE /* PropertiesLoader.swift */,
 				14B0CA1C297DB54B004A12BE /* Loader.swift */,
 				1409C21B297F42E50091B58D /* ReportLoader.swift */,
+				14TELM0012025122900002 /* TelemetryLogger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -265,6 +268,7 @@
 				14B0C9FE297D9ADE004A12BE /* DataBarApp.swift in Sources */,
 				14B0CA28297DF00F004A12BE /* PropertySelectView.swift in Sources */,
 				14B0CA30297DF7F4004A12BE /* Account.swift in Sources */,
+				14TELM0012025122900001 /* TelemetryLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -43,7 +43,13 @@ extension Loader {
   func sessionWithFreshToken(completion: @escaping (Result<URLSession, Error>) -> Void) {
     GIDSignIn.sharedInstance.currentUser?.refreshTokensIfNeeded { user, error in
       guard let token = user?.accessToken.tokenString else {
-        completion(.failure(.couldNotCreateURLSession(error)))
+        let loaderError = Error.couldNotCreateURLSession(error)
+        TelemetryLogger.shared.logTokenRefreshFailure(
+          source: "Loader.sessionWithFreshToken",
+          error: error,
+          additionalContext: ["user_was_nil": user == nil]
+        )
+        completion(.failure(loaderError))
         return
       }
       let configuration = URLSessionConfiguration.default

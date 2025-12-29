@@ -47,9 +47,15 @@ struct DataBarApp: App {
               self.authViewModel.state = .signedIn(user)
             } else if let error = error {
               self.authViewModel.state = .signedOut
+              TelemetryLogger.shared.logSessionRestorationFailure(error: error)
               print("There was an error restoring the previous sign-in: \(error)")
             } else {
               self.authViewModel.state = .signedOut
+              TelemetryLogger.shared.logSignedOutState(
+                source: "DataBarApp.restorePreviousSignIn",
+                reason: TelemetryLogger.SignOutReason.sessionRestoreFailed,
+                additionalContext: ["no_user_and_no_error": true]
+              )
             }
           }
         }
