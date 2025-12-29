@@ -61,8 +61,7 @@ jobs:
 
       - name: Build Release
         run: |
-          # Archive without signing - we'll sign during export
-          # This avoids issues with SPM dependencies not finding the certificate
+          # Archive without signing - we'll manually codesign after export
           xcodebuild archive \
             -scheme $SCHEME \
             -configuration Release \
@@ -91,10 +90,57 @@ jobs:
           </plist>
           EOF
 
-          xcodebuild -exportArchive \
-            -archivePath build/$PRODUCT_NAME.xcarchive \
-            -exportPath build/export \
-            -exportOptionsPlist ExportOptions.plist
+          # Export will fail to sign properly, so we just copy the app
+          mkdir -p build/export
+          cp -R "build/$PRODUCT_NAME.xcarchive/Products/Applications/$PRODUCT_NAME.app" build/export/
+
+      - name: Codesign app
+        run: |
+          APP_PATH="build/export/$PRODUCT_NAME.app"
+          IDENTITY="${{ secrets.CODE_SIGN_IDENTITY }}"
+          ENTITLEMENTS="DataBar/DataBar.entitlements"
+          
+          echo "Signing with identity: $IDENTITY"
+          
+          # Sign all frameworks and dylibs first (deep sign)
+          find "$APP_PATH/Contents/Frameworks" -type f -name "*.dylib" -o -name "*.framework" 2>/dev/null | while read -r framework; do
+            echo "Signing: $framework"
+            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$framework" || true
+          done
+          
+          # Sign framework executables
+          find "$APP_PATH/Contents/Frameworks" -type f -perm +111 ! -name "*.dylib" 2>/dev/null | while read -r binary; do
+            echo "Signing binary: $binary"
+            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$binary" || true
+          done
+          
+          # Sign any XPC services
+          find "$APP_PATH" -name "*.xpc" -type d 2>/dev/null | while read -r xpc; do
+            echo "Signing XPC: $xpc"
+            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$xpc" || true
+          done
+          
+          # Sign the Sparkle framework specifically (it has nested items)
+          if [ -d "$APP_PATH/Contents/Frameworks/Sparkle.framework" ]; then
+            echo "Signing Sparkle framework..."
+            # Sign Autoupdate helper apps inside Sparkle
+            find "$APP_PATH/Contents/Frameworks/Sparkle.framework" -name "*.app" -type d | while read -r helper; do
+              codesign --force --deep --timestamp --options runtime --sign "$IDENTITY" "$helper"
+            done
+            # Sign the main Sparkle framework
+            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$APP_PATH/Contents/Frameworks/Sparkle.framework"
+          fi
+          
+          # Sign the main app last with entitlements
+          echo "Signing main app..."
+          codesign --force --timestamp --options runtime --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP_PATH"
+          
+          # Verify the signature
+          echo "Verifying signature..."
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          
+          echo "Checking signature details..."
+          codesign -dv --verbose=4 "$APP_PATH"
 
       - name: Notarize app
         env:
