@@ -7,15 +7,15 @@
     <language>en</language>
     <item>
       <title>Version 1.0.0</title>
-      <pubDate>Mon, 29 Dec 2025 22:02:31 +0000</pubDate>
-      <sparkle:version>10</sparkle:version>
+      <pubDate>Mon, 29 Dec 2025 22:41:33 +0000</pubDate>
+      <sparkle:version>14</sparkle:version>
       <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.1</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/sammarks/DataBar/releases/download/v1.0.0/DataBar.zip"
-        length="2118429"
+        length="2118468"
         type="application/octet-stream"
-        sparkle:edSignature="UJ2bJU3eEbwwiFpOTFx5I9EdqNZX5+o68D0BOpM9otpVkqy/UKs0z8EQOhwrCB9yZ9Akbrr9X9yYpfMmt2PPDw==" length="2118429"
+        sparkle:edSignature="2tIrlsjBTGMOuSDc41hWezoodj2SPCQKsdoixfelHK60EGHCilx+jreRa5emvi+iyp9HAtdyvLgOZ1gmxEi5Ag==" length="2118468"
       />
     </item>
   </channel>
