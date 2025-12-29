@@ -1,0 +1,10 @@
+//
+//  DataBarConfig.xcconfig
+//  DataBar
+//
+//  Created by Sam Marks on 1/29/23.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+GOOGLE_CLIENT_ID = 458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk.apps.googleusercontent.com
