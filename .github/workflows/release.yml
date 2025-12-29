@@ -42,13 +42,29 @@ jobs:
 
           echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
 
+          # Create and configure keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
+          # Import certificate
           security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # Allow codesign to access the key without UI prompt
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          # Add keychain to search list (prepend to existing list, don't replace)
+          security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychain -d user | tr -d '"')
+          
+          # Make it the default
+          security default-keychain -s $KEYCHAIN_PATH
+          
+          # Verify the certificate is accessible
+          echo "Verifying certificate..."
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
+          
+          # Export keychain path for later steps
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -scheme $SCHEME
@@ -101,23 +117,30 @@ jobs:
           ENTITLEMENTS="DataBar/DataBar.entitlements"
           
           echo "Signing with identity: $IDENTITY"
+          echo "Using keychain: $KEYCHAIN_PATH"
+          
+          # Verify we can find the identity
+          security find-identity -v -p codesigning
+          
+          # Unlock keychain again (in case it locked)
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" "$KEYCHAIN_PATH"
           
           # Sign all frameworks and dylibs first (deep sign)
-          find "$APP_PATH/Contents/Frameworks" -type f -name "*.dylib" -o -name "*.framework" 2>/dev/null | while read -r framework; do
+          find "$APP_PATH/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.framework" \) 2>/dev/null | while read -r framework; do
             echo "Signing: $framework"
-            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$framework" || true
+            codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$framework" || true
           done
           
           # Sign framework executables
           find "$APP_PATH/Contents/Frameworks" -type f -perm +111 ! -name "*.dylib" 2>/dev/null | while read -r binary; do
             echo "Signing binary: $binary"
-            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$binary" || true
+            codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$binary" || true
           done
           
           # Sign any XPC services
           find "$APP_PATH" -name "*.xpc" -type d 2>/dev/null | while read -r xpc; do
             echo "Signing XPC: $xpc"
-            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$xpc" || true
+            codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$xpc" || true
           done
           
           # Sign the Sparkle framework specifically (it has nested items)
@@ -125,15 +148,15 @@ jobs:
             echo "Signing Sparkle framework..."
             # Sign Autoupdate helper apps inside Sparkle
             find "$APP_PATH/Contents/Frameworks/Sparkle.framework" -name "*.app" -type d | while read -r helper; do
-              codesign --force --deep --timestamp --options runtime --sign "$IDENTITY" "$helper"
+              codesign --force --deep --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$helper"
             done
             # Sign the main Sparkle framework
-            codesign --force --timestamp --options runtime --sign "$IDENTITY" "$APP_PATH/Contents/Frameworks/Sparkle.framework"
+            codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --sign "$IDENTITY" "$APP_PATH/Contents/Frameworks/Sparkle.framework"
           fi
           
           # Sign the main app last with entitlements
           echo "Signing main app..."
-          codesign --force --timestamp --options runtime --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP_PATH"
+          codesign --force --timestamp --options runtime --keychain "$KEYCHAIN_PATH" --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP_PATH"
           
           # Verify the signature
           echo "Verifying signature..."
