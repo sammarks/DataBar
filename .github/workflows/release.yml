@@ -176,7 +176,10 @@ jobs:
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
         run: |
           cd build/export
-          zip -r $PRODUCT_NAME.zip $PRODUCT_NAME.app
+          
+          # Use ditto to create zip - preserves symlinks, resource forks, and HFS metadata
+          # Regular zip breaks macOS framework signatures by following symlinks
+          ditto -c -k --keepParent $PRODUCT_NAME.app $PRODUCT_NAME.zip
 
           # Write API key to file
           mkdir -p ~/.private_keys
@@ -220,7 +223,8 @@ jobs:
         run: |
           cd build/export
           rm -f $PRODUCT_NAME.zip
-          zip -r $PRODUCT_NAME.zip $PRODUCT_NAME.app
+          # Use ditto to preserve symlinks and macOS metadata
+          ditto -c -k --keepParent $PRODUCT_NAME.app $PRODUCT_NAME.zip
 
       - name: Sign update with Sparkle
         env:
