@@ -4,7 +4,7 @@
 
 <h1 align="center">DataBar</h1>
 
-DataBar is a lightweight macOS menu bar app that displays your Google Analytics real-time user count at a glance.
+<p align="center">DataBar is a lightweight macOS menu bar app that displays your Google Analytics real-time user count at a glance.</p>
 
 <p align="center">
   <a href="https://github.com/sammarks/DataBar/releases">
