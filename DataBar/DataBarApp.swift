@@ -12,9 +12,27 @@ import GoogleSignIn
 struct DataBarApp: App {
   @StateObject var authViewModel = AuthenticationViewModel()
   @StateObject var updaterViewModel = UpdaterViewModel()
+  @AppStorage("selectedPropertyId") private var selectedPropertyId: String = ""
+  
+  private var googleAnalyticsURL: URL? {
+    guard !selectedPropertyId.isEmpty else { return nil }
+    // selectedPropertyId format is "properties/XXXXXX" - extract the numeric ID
+    let propertyId = selectedPropertyId.replacingOccurrences(of: "properties/", with: "")
+    return URL(string: "https://analytics.google.com/analytics/web/#/p\(propertyId)/realtime/overview")
+  }
   
   var body: some Scene {
     MenuBarExtra(content: {
+      Button {
+        if let url = googleAnalyticsURL {
+          NSWorkspace.shared.open(url)
+        }
+      } label: {
+        Label("Open Google Analytics", systemImage: "safari")
+      }
+      .disabled(selectedPropertyId.isEmpty)
+      .keyboardShortcut("o")
+      Divider()
       if #available(macOS 14.0, *) {
         SettingsLink()
           .keyboardShortcut(",")
