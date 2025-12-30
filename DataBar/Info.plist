@@ -17,7 +17,9 @@
 		<string>458192833869-vcd5oout7b2fbu932r8ik7mbhqmcp8lk.apps.googleusercontent.com</string>
 		<key>SUFeedURL</key>
 		<string>https://raw.githubusercontent.com/sammarks/DataBar/main/appcast.xml</string>
-		<key>SUPublicEDKey</key>
-		<string>hmXQj098qaMCmcjEPbBwd+VUQhdA4iB4Lzizg9IQZac=</string>
-	</dict>
+	<key>SUPublicEDKey</key>
+	<string>hmXQj098qaMCmcjEPbBwd+VUQhdA4iB4Lzizg9IQZac=</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+</dict>
 </plist>
