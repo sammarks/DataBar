@@ -10,7 +10,7 @@ import SwiftUI
 
 struct MenuBarView: View {
   @EnvironmentObject var authViewModel: AuthenticationViewModel
-  @ObservedObject var menuBarViewModel: MenuBarViewModel = MenuBarViewModel()
+  @StateObject var menuBarViewModel: MenuBarViewModel = MenuBarViewModel()
   @AppStorage("intervalSeconds") private var intervalSeconds: Int = 30
   @AppStorage("selectedPropertyId") private var selectedPropertyId: String = ""
   var timer: Publishers.Autoconnect<Timer.TimerPublisher> {

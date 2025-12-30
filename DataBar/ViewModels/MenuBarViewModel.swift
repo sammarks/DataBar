@@ -48,26 +48,44 @@ final class MenuBarViewModel: ObservableObject {
   }
   
   func refreshValue() {
-    if selectedPropertyId != "" {
-      reportLoader.realTimeUsersPublisher(propertyId: selectedPropertyId) { publisher in
-        self.cancellable = publisher.sink { completion in
-          switch completion {
-          case .finished:
-            break
-          case .failure(let error):
-            self.currentValue = nil
-            self.hasError = true
-            TelemetryLogger.shared.logErrorState(
-              source: "MenuBarViewModel.refreshValue",
-              error: error,
-              propertyId: self.selectedPropertyId
-            )
-            print("Error retrieving current value: \(error)")
-          }
-        } receiveValue: { reportResponse in
-          self.currentValue = reportResponse.rows?[0].metricValues[0].value ?? "0"
-          self.hasError = false
+    print("[MenuBarViewModel] refreshValue called, selectedPropertyId: '\(selectedPropertyId)'")
+    
+    guard !selectedPropertyId.isEmpty else {
+      print("[MenuBarViewModel] refreshValue skipped - no property selected")
+      TelemetryLogger.shared.logErrorState(
+        source: "MenuBarViewModel.refreshValue",
+        error: nil,
+        additionalContext: ["reason": "selectedPropertyId is empty"]
+      )
+      return
+    }
+    
+    print("[MenuBarViewModel] calling realTimeUsersPublisher...")
+    reportLoader.realTimeUsersPublisher(propertyId: selectedPropertyId) { [weak self] publisher in
+      guard let self = self else {
+        print("[MenuBarViewModel] self was deallocated in publisher callback")
+        return
+      }
+      
+      print("[MenuBarViewModel] received publisher, subscribing...")
+      self.cancellable = publisher.sink { completion in
+        switch completion {
+        case .finished:
+          print("[MenuBarViewModel] publisher finished successfully")
+        case .failure(let error):
+          self.currentValue = nil
+          self.hasError = true
+          TelemetryLogger.shared.logErrorState(
+            source: "MenuBarViewModel.refreshValue",
+            error: error,
+            propertyId: self.selectedPropertyId
+          )
+          print("[MenuBarViewModel] Error retrieving current value: \(error)")
         }
+      } receiveValue: { reportResponse in
+        print("[MenuBarViewModel] received value: \(reportResponse)")
+        self.currentValue = reportResponse.rows?[0].metricValues[0].value ?? "0"
+        self.hasError = false
       }
     }
   }

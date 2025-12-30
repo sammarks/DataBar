@@ -49,11 +49,25 @@ final class ReportLoader: ObservableObject, Loader {
   }
   
   func realTimeUsersPublisher(propertyId: String, completion: @escaping (AnyPublisher<ReportResponse, Error>) -> Void) {
+    print("[ReportLoader] realTimeUsersPublisher called for propertyId: \(propertyId)")
     sessionWithFreshToken { [weak self] result in
+      guard let self = self else {
+        print("[ReportLoader] self was deallocated in sessionWithFreshToken callback")
+        TelemetryLogger.shared.logErrorState(
+          source: "ReportLoader.realTimeUsersPublisher",
+          error: nil,
+          propertyId: propertyId,
+          additionalContext: ["reason": "self was deallocated"]
+        )
+        return
+      }
+      
       switch result {
       case .success(let authSession):
-        completion(self!.getRealTimeUsers(for: authSession, propertyId: propertyId))
+        print("[ReportLoader] got auth session, fetching real time users...")
+        completion(self.getRealTimeUsers(for: authSession, propertyId: propertyId))
       case .failure(let error):
+        print("[ReportLoader] failed to get auth session: \(error)")
         completion(Fail(error: error).eraseToAnyPublisher())
       }
     }
