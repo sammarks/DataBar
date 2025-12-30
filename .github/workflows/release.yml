@@ -160,12 +160,12 @@ jobs:
           tar -xf sparkle.tar.xz -C sparkle_tools
           
           echo "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_key
-          SIGNATURE=$(sparkle_tools/bin/sign_update "$PRODUCT_NAME.zip" --ed-key-file /tmp/sparkle_key)
+          SIGN_OUTPUT=$(sparkle_tools/bin/sign_update "$PRODUCT_NAME.zip" --ed-key-file /tmp/sparkle_key)
           rm /tmp/sparkle_key
           
-          echo "SPARKLE_SIGNATURE<<EOF" >> $GITHUB_ENV
-          echo "$SIGNATURE" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Extract just the signature value (sign_update outputs: sparkle:edSignature="..." length="...")
+          ED_SIGNATURE=$(echo "$SIGN_OUTPUT" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//' | sed 's/"$//')
+          echo "ED_SIGNATURE=$ED_SIGNATURE" >> $GITHUB_ENV
           
           FILE_SIZE=$(stat -f%z "$PRODUCT_NAME.zip")
           echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
@@ -211,7 +211,7 @@ jobs:
                   url="${DOWNLOAD_URL}"
                   length="${FILE_SIZE}"
                   type="application/octet-stream"
-                  ${SPARKLE_SIGNATURE}
+                  sparkle:edSignature="${ED_SIGNATURE}"
                 />
               </item>
             </channel>
