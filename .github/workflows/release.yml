@@ -170,17 +170,75 @@ jobs:
           FILE_SIZE=$(stat -f%z "$PRODUCT_NAME.zip")
           echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
 
+      - name: Generate release notes
+        id: release_notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # First release - get all commits
+            COMMIT_RANGE="HEAD"
+          else
+            COMMIT_RANGE="${PREVIOUS_TAG}..HEAD"
+          fi
+          
+          # Start building release notes
+          echo "## DataBar v${VERSION}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Installation" >> release_notes.md
+          echo "1. Download \`DataBar.zip\` below" >> release_notes.md
+          echo "2. Unzip and move \`DataBar.app\` to your Applications folder" >> release_notes.md
+          echo "3. Open the app (it's signed and notarized)" >> release_notes.md
+          
+          # Get merged PRs in this range
+          PR_LIST=$(git log ${COMMIT_RANGE} --oneline --grep="Merge pull request" 2>/dev/null || echo "")
+          
+          if [ -n "$PR_LIST" ]; then
+            echo "" >> release_notes.md
+            echo "### Merged Pull Requests" >> release_notes.md
+            while IFS= read -r line; do
+              if [ -n "$line" ]; then
+                # Extract PR number from merge commit message
+                PR_NUM=$(echo "$line" | grep -o '#[0-9]*' | head -1)
+                if [ -n "$PR_NUM" ]; then
+                  PR_NUMBER=${PR_NUM#\#}
+                  # Get PR title using gh cli
+                  PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title' 2>/dev/null || echo "")
+                  if [ -n "$PR_TITLE" ]; then
+                    echo "- ${PR_TITLE} ([${PR_NUM}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER}))" >> release_notes.md
+                  else
+                    echo "- ${PR_NUM}" >> release_notes.md
+                  fi
+                fi
+              fi
+            done <<< "$PR_LIST"
+          fi
+          
+          # Get commits (excluding merge commits)
+          COMMIT_LIST=$(git log ${COMMIT_RANGE} --oneline --no-merges 2>/dev/null || echo "")
+          
+          if [ -n "$COMMIT_LIST" ]; then
+            echo "" >> release_notes.md
+            echo "### Commits" >> release_notes.md
+            while IFS= read -r line; do
+              if [ -n "$line" ]; then
+                COMMIT_SHA=$(echo "$line" | awk '{print $1}')
+                COMMIT_MSG=$(echo "$line" | cut -d' ' -f2-)
+                echo "- ${COMMIT_MSG} ([\`${COMMIT_SHA}\`](https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}))" >> release_notes.md
+              fi
+            done <<< "$COMMIT_LIST"
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           name: DataBar v${{ steps.version.outputs.version }}
-          body: |
-            ## DataBar v${{ steps.version.outputs.version }}
-            
-            ### Installation
-            1. Download `DataBar.zip` below
-            2. Unzip and move `DataBar.app` to your Applications folder
-            3. Open the app (it's signed and notarized)
+          body_path: release_notes.md
           files: |
             DataBar.zip
             DataBar.dmg
