@@ -63,7 +63,10 @@ jobs:
 
       - name: Build app
         run: |
-          xcodebuild -scheme "$SCHEME" -configuration Release -derivedDataPath build
+          xcodebuild -scheme "$SCHEME" -configuration Release -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Codesign app bundle
         env:
