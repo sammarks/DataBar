@@ -6,16 +6,16 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 1.1.1</title>
-      <pubDate>Tue, 30 Dec 2025 03:36:46 +0000</pubDate>
-      <sparkle:version>25</sparkle:version>
-      <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+      <title>Version 1.1.2</title>
+      <pubDate>Tue, 30 Dec 2025 03:54:32 +0000</pubDate>
+      <sparkle:version>26</sparkle:version>
+      <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.1</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/sammarks/DataBar/releases/download/v1.1.1/DataBar.zip"
-        length="1925725"
+        url="https://github.com/sammarks/DataBar/releases/download/v1.1.2/DataBar.zip"
+        length="1928468"
         type="application/octet-stream"
-        sparkle:edSignature="r5FO5Gp1g/1D7ip7B+ELWqAwdwLgMYQ57IOoV66iAkpiWbPa5mE3S0ouqpKlOb5jcPFdeS0rS9wlCR4I+cg2Ag=="
+        sparkle:edSignature="dBIMTqtlW1ucUSr8mX9TUN4rcK+SbNLkBmWNH8YoXz2aNp7MlK90X+Nl6+h7lL3S8xKE8kSCv3Ldbm6r2vICAQ=="
       />
     </item>
   </channel>
