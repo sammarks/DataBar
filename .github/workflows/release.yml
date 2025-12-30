@@ -61,11 +61,18 @@ jobs:
           sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = ${{ github.run_number }};/g" project.pbxproj
 
       - name: Archive
+        env:
+          SIGNING_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
+          TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
           xcodebuild -scheme "$SCHEME" \
             -configuration Release \
             -destination "platform=macOS" \
             -archivePath "$PRODUCT_NAME.xcarchive" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
             archive
 
       - name: Export
