@@ -7,17 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		14APPD0012025123100001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14APPD0012025123100002 /* AppDelegate.swift */; };
-		14MPROP001202512310001 /* ConfiguredProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP001202512310002 /* ConfiguredProperty.swift */; };
-		14MPROP002202512310001 /* CodableAppStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP002202512310002 /* CodableAppStorage.swift */; };
-		14MPROP004202512310001 /* PropertyManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP004202512310002 /* PropertyManagementView.swift */; };
-		14SPARK012025122900001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 14SPARK012025122900002 /* Sparkle */; };
 		1409C21C297F42E50091B58D /* ReportLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1409C21B297F42E50091B58D /* ReportLoader.swift */; };
 		1409C21E297F433D0091B58D /* ReportResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1409C21D297F433D0091B58D /* ReportResponse.swift */; };
 		1409C220297F45ED0091B58D /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1409C21F297F45ED0091B58D /* MenuBarView.swift */; };
 		1409C222297F46000091B58D /* MenuBarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1409C221297F46000091B58D /* MenuBarViewModel.swift */; };
 		1464E71B2980AB0E0042342C /* IntervalSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1464E71A2980AB0E0042342C /* IntervalSelectView.swift */; };
 		1464E71E2980B6190042342C /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 1464E71D2980B6190042342C /* LaunchAtLogin */; };
+		14APPD0012025123100001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14APPD0012025123100002 /* AppDelegate.swift */; };
 		14B0C9FE297D9ADE004A12BE /* DataBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0C9FD297D9ADE004A12BE /* DataBarApp.swift */; };
 		14B0CA00297D9ADE004A12BE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0C9FF297D9ADE004A12BE /* SettingsView.swift */; };
 		14B0CA02297D9ADF004A12BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14B0CA01297D9ADF004A12BE /* Assets.xcassets */; };
@@ -35,6 +31,10 @@
 		14B0CA28297DF00F004A12BE /* PropertySelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0CA27297DF00F004A12BE /* PropertySelectView.swift */; };
 		14B0CA30297DF7F4004A12BE /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B0CA2F297DF7F4004A12BE /* Account.swift */; };
 		14E802E229872233007F9FD7 /* View+windowLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E802E129872233007F9FD7 /* View+windowLevel.swift */; };
+		14MPROP001202512310001 /* ConfiguredProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP001202512310002 /* ConfiguredProperty.swift */; };
+		14MPROP002202512310001 /* CodableAppStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP002202512310002 /* CodableAppStorage.swift */; };
+		14MPROP004202512310001 /* PropertyManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14MPROP004202512310002 /* PropertyManagementView.swift */; };
+		14SPARK012025122900001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 14SPARK012025122900002 /* Sparkle */; };
 		14TELM0012025122900001 /* TelemetryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14TELM0012025122900002 /* TelemetryLogger.swift */; };
 		14UPDT0012025122900001 /* UpdaterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14UPDT0012025122900002 /* UpdaterViewModel.swift */; };
 /* End PBXBuildFile section */
@@ -45,6 +45,7 @@
 		1409C21F297F45ED0091B58D /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		1409C221297F46000091B58D /* MenuBarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarViewModel.swift; sourceTree = "<group>"; };
 		1464E71A2980AB0E0042342C /* IntervalSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalSelectView.swift; sourceTree = "<group>"; };
+		14APPD0012025123100002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		14B0C9FA297D9ADE004A12BE /* DataBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DataBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14B0C9FD297D9ADE004A12BE /* DataBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataBarApp.swift; sourceTree = "<group>"; };
 		14B0C9FF297D9ADE004A12BE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -65,12 +66,11 @@
 		14B0CA2F297DF7F4004A12BE /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		14E802E129872233007F9FD7 /* View+windowLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+windowLevel.swift"; sourceTree = "<group>"; };
 		14E802E4298739C0007F9FD7 /* DataBarConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DataBarConfig.xcconfig; sourceTree = "<group>"; };
-		14TELM0012025122900002 /* TelemetryLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryLogger.swift; sourceTree = "<group>"; };
-		14UPDT0012025122900002 /* UpdaterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterViewModel.swift; sourceTree = "<group>"; };
 		14MPROP001202512310002 /* ConfiguredProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredProperty.swift; sourceTree = "<group>"; };
 		14MPROP002202512310002 /* CodableAppStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableAppStorage.swift; sourceTree = "<group>"; };
 		14MPROP004202512310002 /* PropertyManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyManagementView.swift; sourceTree = "<group>"; };
-		14APPD0012025123100002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		14TELM0012025122900002 /* TelemetryLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryLogger.swift; sourceTree = "<group>"; };
+		14UPDT0012025122900002 /* UpdaterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -498,14 +498,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		14SPARK012025122900003 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
 		1464E71C2980B6190042342C /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -522,14 +514,17 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		14SPARK012025122900003 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		14SPARK012025122900002 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 14SPARK012025122900003 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
 		1464E71D2980B6190042342C /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1464E71C2980B6190042342C /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
@@ -539,6 +534,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 14B0CA0C297D9D1C004A12BE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		14SPARK012025122900002 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 14SPARK012025122900003 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
