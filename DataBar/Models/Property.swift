@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Property: Decodable, Identifiable {
+struct Property: Decodable, Identifiable, Hashable {
   let name: String
   let displayName: String
   let parent: String
@@ -24,6 +24,16 @@ struct Property: Decodable, Identifiable {
     self.account = from.account
     self.deleteTime = from.deleteTime
     self.accountObj = withAccount
+  }
+  
+  // MARK: - Hashable (based on unique name/id)
+  
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(name)
+  }
+  
+  static func == (lhs: Property, rhs: Property) -> Bool {
+    lhs.name == rhs.name
   }
 }
 

@@ -25,7 +25,9 @@ struct AccountView: View {
       Form {
         Section {
           ConnectedAccountView()
-          PropertySelectView()
+        }
+        Section("Menu Bar Properties") {
+          PropertyManagementView()
         }
         Section {
           IntervalSelectView()
@@ -35,4 +37,3 @@ struct AccountView: View {
     }
   }
 }
-

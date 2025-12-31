@@ -14,10 +14,10 @@ struct SettingsView: View {
         .tabItem {
           Label("Accounts", systemImage: "person.crop.circle")
         }
-        .frame(width: 400, height: 250)
+        .frame(width: 450, height: 400)
     }
     .formStyle(.grouped)
     .fixedSize()
-    .windowLevel(.floating + 1)
+    .windowLevel(NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue + 1))
   }
 }
