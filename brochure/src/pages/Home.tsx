@@ -7,6 +7,11 @@ const features = [
     description: 'See your active Google Analytics users at a glance, right from your menu bar.',
   },
   {
+    icon: '🏢',
+    title: 'Multiple Properties',
+    description: 'Monitor up to 5 GA4 properties simultaneously with custom icons and labels for each.',
+  },
+  {
     icon: '⚡',
     title: 'Always Visible',
     description: 'Lives in your menu bar—always accessible without cluttering your desktop.',
@@ -44,7 +49,8 @@ export default function Home() {
         </p>
         <p className="hero-description">
           A lightweight macOS app that displays your Google Analytics real-time
-          user count at a glance. No more switching tabs—your data is always visible.
+          user count at a glance. Monitor multiple properties simultaneously with
+          custom icons—no more switching tabs.
         </p>
         <div className="hero-actions">
           <a
