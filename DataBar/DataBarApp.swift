@@ -10,83 +10,13 @@ import GoogleSignIn
 
 @main
 struct DataBarApp: App {
-  @StateObject var authViewModel = AuthenticationViewModel()
-  @StateObject var updaterViewModel = UpdaterViewModel()
-  @AppStorage("selectedPropertyId") private var selectedPropertyId: String = ""
-  
-  private var googleAnalyticsURL: URL? {
-    guard !selectedPropertyId.isEmpty else { return nil }
-    // selectedPropertyId format is "properties/XXXXXX" - extract the numeric ID
-    let propertyId = selectedPropertyId.replacingOccurrences(of: "properties/", with: "")
-    return URL(string: "https://analytics.google.com/analytics/web/#/p\(propertyId)/realtime/overview")
-  }
+  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   
   var body: some Scene {
-    MenuBarExtra(content: {
-      Button {
-        if let url = googleAnalyticsURL {
-          NSWorkspace.shared.open(url)
-        }
-      } label: {
-        Label("Open Google Analytics", systemImage: "safari")
-      }
-      .disabled(selectedPropertyId.isEmpty)
-      .keyboardShortcut("o")
-      Divider()
-      if #available(macOS 14.0, *) {
-        SettingsLink()
-          .keyboardShortcut(",")
-      } else {
-        Button("Settings") {
-          NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-          NSApp.activate(ignoringOtherApps: true)
-        }.keyboardShortcut(",")
-      }
-      Divider()
-      Button("Check for Updates...") {
-        updaterViewModel.checkForUpdates()
-      }
-      .disabled(!updaterViewModel.canCheckForUpdates)
-      Divider()
-      Button("About") {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(nil)
-      }
-      Button("Send Feedback...") {
-        NSWorkspace.shared.open(URL(string: "https://github.com/sammarks/DataBar/issues")!)
-      }
-      Button("Rate on the App Store") {
-        NSWorkspace.shared.open(URL(string: "macappstore://apps.apple.com/app/idXXXX?action=write-review")!)
-      }
-      Divider()
-      Button("Quit") {
-        NSApplication.shared.terminate(nil)
-      }.keyboardShortcut("q")
-    }, label: {
-      MenuBarView()
-        .environmentObject(authViewModel)
-        .onAppear {
-          GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
-            if let user = user {
-              self.authViewModel.state = .signedIn(user)
-            } else if let error = error {
-              self.authViewModel.state = .signedOut
-              TelemetryLogger.shared.logSessionRestorationFailure(error: error)
-              print("There was an error restoring the previous sign-in: \(error)")
-            } else {
-              self.authViewModel.state = .signedOut
-              TelemetryLogger.shared.logSignedOutState(
-                source: "DataBarApp.restorePreviousSignIn",
-                reason: TelemetryLogger.SignOutReason.sessionRestoreFailed,
-                additionalContext: ["no_user_and_no_error": true]
-              )
-            }
-          }
-        }
-    })
     Settings {
       SettingsView()
-        .environmentObject(authViewModel)
+        .environmentObject(appDelegate.authViewModel)
+        .environmentObject(appDelegate.menuBarViewModel)
         .onOpenURL { url in
           GIDSignIn.sharedInstance.handle(url)
         }
