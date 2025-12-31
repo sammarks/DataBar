@@ -15,7 +15,7 @@ env:
 jobs:
   build-and-release:
     name: Build, Sign, Notarize and Release
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout
@@ -42,18 +42,18 @@ jobs:
         run: |
           CERTIFICATE_PATH="$RUNNER_TEMP/certificate.p12"
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
-          
+
           echo -n "$MACOS_CERTIFICATE" | base64 --decode -i - -o "$CERTIFICATE_PATH"
-          
+
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" "$KEYCHAIN_PATH"
           security import "$CERTIFICATE_PATH" -P "$MACOS_CERTIFICATE_PWD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" "$KEYCHAIN_PATH"
-          
+
           # Add to search list while preserving existing keychains
           security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychain -d user | tr -d '"')
-          
+
           # Verify the identity is available
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
@@ -80,20 +80,20 @@ jobs:
         run: |
           APP_PATH="build/Build/Products/Release/$PRODUCT_NAME.app"
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
-          
+
           # Unlock keychain again (may have locked during build)
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" "$KEYCHAIN_PATH"
-          
+
           # Codesign Sparkle framework components (innermost to outermost)
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime "$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc"
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime "$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc"
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime "$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate"
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime "$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app"
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime "$APP_PATH/Contents/Frameworks/Sparkle.framework"
-          
+
           # Codesign the main app bundle with entitlements
           /usr/bin/codesign --verbose -f -s "$MACOS_CERTIFICATE_NAME" --keychain "$KEYCHAIN_PATH" -o runtime --entitlements "DataBar/DataBar.entitlements" "$APP_PATH"
-          
+
           # Verify
           /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
@@ -102,7 +102,7 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ secrets.CODE_SIGN_IDENTITY }}
         run: |
           APP_PATH="build/Build/Products/Release/$PRODUCT_NAME.app"
-          
+
           npm install --global create-dmg
           create-dmg \
             --identity="$MACOS_CERTIFICATE_NAME" \
@@ -122,23 +122,23 @@ jobs:
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
         run: |
           APP_PATH="build/Build/Products/Release/$PRODUCT_NAME.app"
-          
+
           # Write API key
           echo "$APPLE_API_KEY_BASE64" | base64 --decode > notarization_key.p8
-          
+
           # Store credentials
           xcrun notarytool store-credentials "notarytool-profile" \
             --key notarization_key.p8 \
             --key-id "$APPLE_API_KEY_ID" \
             --issuer "$APPLE_API_ISSUER_ID"
           rm notarization_key.p8
-          
+
           # Notarize the zip
           xcrun notarytool submit "$PRODUCT_NAME.zip" --keychain-profile "notarytool-profile" --wait
-          
+
           # Staple
           xcrun stapler staple "$APP_PATH"
-          
+
           # Notarize DMG if it exists
           if [ -f "$PRODUCT_NAME.dmg" ]; then
             xcrun notarytool submit "$PRODUCT_NAME.dmg" --keychain-profile "notarytool-profile" --wait
@@ -158,15 +158,15 @@ jobs:
           curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
           mkdir -p sparkle_tools
           tar -xf sparkle.tar.xz -C sparkle_tools
-          
+
           echo "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_key
           SIGN_OUTPUT=$(sparkle_tools/bin/sign_update "$PRODUCT_NAME.zip" --ed-key-file /tmp/sparkle_key)
           rm /tmp/sparkle_key
-          
+
           # Extract just the signature value (sign_update outputs: sparkle:edSignature="..." length="...")
           ED_SIGNATURE=$(echo "$SIGN_OUTPUT" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//' | sed 's/"$//')
           echo "ED_SIGNATURE=$ED_SIGNATURE" >> $GITHUB_ENV
-          
+
           FILE_SIZE=$(stat -f%z "$PRODUCT_NAME.zip")
           echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
 
@@ -176,17 +176,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
+
           if [ -z "$PREVIOUS_TAG" ]; then
             # First release - get all commits
             COMMIT_RANGE="HEAD"
           else
             COMMIT_RANGE="${PREVIOUS_TAG}..HEAD"
           fi
-          
+
           # Start building release notes
           echo "## DataBar v${VERSION}" > release_notes.md
           echo "" >> release_notes.md
@@ -194,10 +194,10 @@ jobs:
           echo "1. Download \`DataBar.zip\` below" >> release_notes.md
           echo "2. Unzip and move \`DataBar.app\` to your Applications folder" >> release_notes.md
           echo "3. Open the app (it's signed and notarized)" >> release_notes.md
-          
+
           # Get merged PRs in this range
           PR_LIST=$(git log ${COMMIT_RANGE} --oneline --grep="Merge pull request" 2>/dev/null || echo "")
-          
+
           if [ -n "$PR_LIST" ]; then
             echo "" >> release_notes.md
             echo "### Merged Pull Requests" >> release_notes.md
@@ -218,10 +218,10 @@ jobs:
               fi
             done <<< "$PR_LIST"
           fi
-          
+
           # Get commits (excluding merge commits)
           COMMIT_LIST=$(git log ${COMMIT_RANGE} --oneline --no-merges 2>/dev/null || echo "")
-          
+
           if [ -n "$COMMIT_LIST" ]; then
             echo "" >> release_notes.md
             echo "### Commits" >> release_notes.md
@@ -250,7 +250,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           DOWNLOAD_URL="https://github.com/sammarks/DataBar/releases/download/v${VERSION}/DataBar.zip"
           PUB_DATE=$(date -R)
-          
+
           cat > appcast.xml << EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
