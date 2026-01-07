@@ -109,7 +109,11 @@ struct PropertyManagementView: View {
       )
     }
     .onAppear {
-      if authViewModel.hasRequiredScopes {
+      if !authViewModel.hasRequiredScopes {
+        authViewModel.addRequiredScopes {
+          propertySelectViewModel.fetchProperties()
+        }
+      } else {
         propertySelectViewModel.fetchProperties()
       }
     }
